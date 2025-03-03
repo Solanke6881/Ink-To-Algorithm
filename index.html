@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From Ink To Algorithm</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tesseract.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/2.1.0/tesseract.min.js"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+        .btn-primary, .btn-success {
+            width: 100%;
+        }
+        .spinner-border {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="bg-dark text-white text-center py-3">
+        <h2>📜 From Ink To Algorithm</h2>
+    </header>
+
+    <div class="container">
+        <div class="card p-4">
+            <h4 class="text-center">Upload Document Image</h4>
+            <input type="file" class="form-control my-3" id="fileInput" accept="image/*">
+            <button class="btn btn-primary" onclick="extractText()">🔍 Extract Text</button>
+            <div class="text-center mt-2">
+                <div class="spinner-border text-primary" role="status" id="loading">
+                    <span class="visually-hidden">Processing...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-4 mt-4">
+            <h4>📄 Extracted Text</h4>
+            <div id="output" class="p-3 bg-light border rounded" style="min-height: 100px;">Upload an image to extract text...</div>
+            <button class="btn btn-success mt-3" onclick="summarizeText()">✍️ Summarize</button>
+        </div>
+
+        <div class="card p-4 mt-4">
+            <h4>📌 Summarized Text</h4>
+            <div id="summary" class="p-3 bg-light border rounded" style="min-height: 100px;">Click 'Summarize' after extracting text.</div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        function extractText() {
+            let fileInput = document.getElementById('fileInput');
+            let outputDiv = document.getElementById('output');
+            let loading = document.getElementById('loading');
+            
+            if (fileInput.files.length === 0) {
+                outputDiv.innerText = "❌ Please upload an image.";
+                return;
+            }
+
+            loading.style.display = "inline-block"; // Show loading spinner
+            outputDiv.innerText = "Processing OCR...";
+
+            let file = fileInput.files[0];
+            let reader = new FileReader();
+            
+            reader.onload = function () {
+                let imageData = reader.result;
+                Tesseract.recognize(
+                    imageData,
+                    'eng',
+                    { logger: m => console.log(m) }
+                ).then(({ data: { text } }) => {
+                    loading.style.display = "none"; // Hide loading spinner
+                    outputDiv.innerText = text || "⚠️ No text found.";
+                }).catch(error => {
+                    loading.style.display = "none";
+                    outputDiv.innerText = "❌ Error extracting text.";
+                });
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function summarizeText() {
+            let text = document.getElementById('output').innerText;
+            let summaryDiv = document.getElementById('summary');
+
+            // Simple summarization logic: Take the first few sentences
+            let sentences = text.split('.');
+            let summary = sentences.slice(0, 3).join('.') + '.'; // Take first 3 sentences
+
+            summaryDiv.innerText = summary || "❌ No text to summarize.";
+        }
+    </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
